@@ -1,4 +1,4 @@
-class RandomNumberGenerator {
+class NMath {
     constructor()
     {
         this.seed = 0;
@@ -16,4 +16,9 @@ class RandomNumberGenerator {
     }
 }
 
-export const MATH = new RandomNumberGenerator();
+export const MATH = new NMath();
+
+export function Clamp(value, min, max)
+{
+    return Math.min(Math.max(value, min), max);
+}

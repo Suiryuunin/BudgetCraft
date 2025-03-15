@@ -1,11 +1,13 @@
-import { MATH } from "../Utils/customMath.js";
-import vec2 from "../Utils/vec.js"
+// import { MATH } from "../Utils/customMath.js";
+import { vec2 } from "../Utils/vec.js";
 
 export default class PerlinNoise
 {
-    constructor(seed)
+    constructor()
     {
-        MATH.srand(seed);
+		this.amplitudeVariationPerOctave = 0.5;
+		this.frequencyVariationPerOctave = 2;
+
 
         this.Permutation = [];
 
@@ -89,15 +91,22 @@ export default class PerlinNoise
 		let result = 0.0;
 		let amplitude = 1.0;
 		let frequency = 1;
+		let maxRes = amplitude;
 
 		for (let octave = 0; octave < numOctaves; octave++) {
 			const n = amplitude * this.StandardPerlin2D(x * frequency, y * frequency);
 			result += n;
 
-			amplitude *= 0.5;
-			frequency *= 2.0;
+			amplitude *= this.amplitudeVariationPerOctave;
+			maxRes += amplitude;
+			frequency *= this.frequencyVariationPerOctave;
 		}
 
-		return result;
+		return result/maxRes;
 	}
 }
+
+const noise = new PerlinNoise();
+
+export function StandardPerlin2D(x, y) {return noise.StandardPerlin2D(x, y);};
+export function FractalBrownianMotion2D(x, y, numOctaves = 1) {return noise.FractalBrownianMotion2D(x, y, numOctaves);};

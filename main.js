@@ -1,35 +1,36 @@
 "use strict";
 
-import { Color, DirectionalLight, PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import { BoxGeometry, Color, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer } from "three";
 import { FractalBrownianMotion2D, StandardPerlin2D } from "./Voxel/PerlinNoise";
-import Chunk from "./Voxel/chunk";
 import { vec2 } from "./Utils/vec";
 import Engine from "./Engine/engine";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
+import ChunkBase from "./Voxel/chunkBase";
 
 
+const canvas = document.querySelector('canvas');
 
-const renderer = new WebGLRenderer({ canvas: document.querySelector('canvas') });
+const renderer = new WebGLRenderer({ canvas: canvas });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 
 // Create a camera
 const camera = new PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 20;
+camera.position.y =20;
 
 const control = new OrbitControls(camera, renderer.domElement);
 
 const scene = new Scene();
 scene.background = new Color(0xFAC898);
 
-const chunk = new Chunk(new vec2(0,0), 16, 1);
 
-chunk.Init(scene);
 
+const chunkBase = new ChunkBase(camera, scene);
+chunkBase.Init();
 
 // Gameloop
 const update = (delta) => {
-
+    chunkBase.Update();
 }
 
 const render = () => {
@@ -38,6 +39,17 @@ const render = () => {
 
 const enigne = new Engine(60, update, render);
 enigne.start();
+
+window.addEventListener('resize', () => {
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+
+
 
 // const canvas = document.querySelector("canvas");
 // const ctx = canvas.getContext("2d");

@@ -8,7 +8,10 @@ export default class Chunk
 {
     constructor(Position = new vec2(0,0), ChunkSize = 16, BlockSize = 1)
     {
+        this.active = false;
+
         this.pos = new vec3(Position.x, 0, Position.y);
+        this.pos2 = new vec2(Position.x, Position.y);
 
         this.BlockVertexData = [
             new vec3(1, 1, 1),
@@ -43,7 +46,7 @@ export default class Chunk
         
 	    for (let i = 0; i < 8; i++)
         {
-            this.BlockVertexData[i] = this.BlockVertexData[i].mult(this.BlockSize);
+            this.BlockVertexData[i] = (this.BlockVertexData[i].mult(this.BlockSize)).add(this.pos);
         }
 
         this.VertexCount = 0;
@@ -59,6 +62,7 @@ export default class Chunk
 
     Init(scene)
     {
+        this.active = true;
         this.GenerateBlocks();
         this.GenerateMesh();
         this.ApplyMesh(scene);

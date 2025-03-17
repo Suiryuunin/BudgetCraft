@@ -11,9 +11,9 @@ export const EDirection = {
 export const EDirV3 =
 [
     new vec3( 1 , 0 , 0 ),  // ForwardVector 
-    new vec3( 0 , 0 , 1 ),  // RightVector   
-    new vec3(-1 , 0 , 0 ),  // BackwardVector
     new vec3( 0 , 0 ,-1 ),  // LeftVector    
+    new vec3(-1 , 0 , 0 ),  // BackwardVector
+    new vec3( 0 , 0 , 1 ),  // RightVector   
     new vec3( 0 , 1 , 0 ),  // UpwardVector  
     new vec3( 0 ,-1 , 0 )   // DownwardVector
 ];

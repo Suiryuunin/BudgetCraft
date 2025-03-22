@@ -107,14 +107,20 @@ export default class Chunk
 
     GenerateMeshAt(x, y, z)
     {
-        if (this.Blocks[this.GetBlockIndex(x, y, z)].Visible)
+        const Block = this.Blocks[this.GetBlockIndex(x, y, z)]
+        if (Block.Visible)
         {
             const Position = new vec3(x, y, z);
 
             for (const Direction of [EDirection.Forward, EDirection.Right, EDirection.Back, EDirection.Left, EDirection.Up, EDirection.Down])
             {
                 const NeighborBlock = this.GetBlockInDirection(Direction, Position);
-                if (NeighborBlock == null || ((this.Blocks[this.GetBlockIndex(x, y, z)].Full || (this.Blocks[this.GetBlockIndex(x, y, z)].Name != NeighborBlock.Name)) && this.Check(NeighborBlock)))
+                if (NeighborBlock == null)
+                {
+                    if (Block.Full)
+                        this.CreateFace(Direction, Position);
+                }
+                else if (((this.Blocks[this.GetBlockIndex(x, y, z)].Name != NeighborBlock.Name)) && this.Check(NeighborBlock))
                     this.CreateFace(Direction, Position);
             }
         }
@@ -231,42 +237,8 @@ export default class Chunk
     {
         const NPos = this.GetPositionInDirection(Direction, Position);
         
-        switch (true)
-        {
-        case (NPos.x >= this.ChunkSize):
-        {
-            if (this.ChunkBase.Chunks[this.Index.x + 1] == undefined) return null;
-            const neighborChunk = this.ChunkBase.Chunks[this.Index.x + 1][this.Index.y];
-            if (neighborChunk == undefined) return null;
-
-            return neighborChunk.Blocks[neighborChunk.GetBlockIndex(NPos.x-this.ChunkSize, NPos.y, NPos.z)];
-        }
-        case (NPos.z >= this.ChunkSize):
-        {
-            if (this.ChunkBase.Chunks[this.Index.x] == undefined) return null;
-            const neighborChunk = this.ChunkBase.Chunks[this.Index.x][this.Index.y + 1];
-            if (neighborChunk == undefined) return null;
-
-            return neighborChunk.Blocks[neighborChunk.GetBlockIndex(NPos.x, NPos.y, NPos.z-this.ChunkSize)];
-        }
-        case (NPos.x < 0):
-        {
-            if (this.ChunkBase.Chunks[this.Index.x - 1] == undefined) return null;
-            const neighborChunk = this.ChunkBase.Chunks[this.Index.x - 1][this.Index.y];
-            if (neighborChunk == undefined) return null;
-
-            return neighborChunk.Blocks[neighborChunk.GetBlockIndex(NPos.x+this.ChunkSize, NPos.y, NPos.z)];
-        }
-        case (NPos.z < 0):
-        {
-            if (this.ChunkBase.Chunks[this.Index.x] == undefined) return null;
-            const neighborChunk = this.ChunkBase.Chunks[this.Index.x][this.Index.y - 1];
-            if (neighborChunk == undefined) return null;
-
-            return neighborChunk.Blocks[neighborChunk.GetBlockIndex(NPos.x, NPos.y, NPos.z+this.ChunkSize)];
-        }
-        default: return this.Blocks[this.GetBlockIndex(NPos.x, NPos.y, NPos.z)];
-        }
+        if (NPos.x >= this.ChunkSize || NPos.y >= this.ChunkHeight || NPos.z >= this.ChunkSize || NPos.x < 0 || NPos.y < 0 || NPos.z < 0) return null;
+        return this.Blocks[this.GetBlockIndex(NPos.x, NPos.y, NPos.z)];
     }
 
     GetBlockIndex(x,y,z)

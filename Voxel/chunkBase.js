@@ -15,7 +15,7 @@ export default class ChunkBase {
         this.camera = camera;
         this.scene = scene;
 
-        this.renderDistance = 8;
+        this.renderDistance = 4;
     }
 
     Init()

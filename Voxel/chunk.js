@@ -1,7 +1,7 @@
 import { BufferAttribute, BufferGeometry, Color, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene } from "three";
 import { Clamp } from "../Utils/customMath.js";
 import { vec2, vec3 } from "../Utils/vec.js";
-import { EBlock, EDirection, EDirV3, EUnitV3, LightDir, TextureIndex, Textures } from "./enums.js";
+import { EBlock, EDirection, EDirV3, EUnitV3, LightDir, mats, TextureIndex, Textures } from "./enums.js";
 import { FractalBrownianMotion2D } from "./PerlinNoise.js";
 
 export default class Chunk
@@ -55,7 +55,7 @@ export default class Chunk
         //Noise
         this.Amplitude = ChunkHeight;
 
-        this.mats = [];
+        // this.mats = [];
         this.mesh = 0;
         this.groups = [];
     }
@@ -119,14 +119,14 @@ export default class Chunk
 
     GenerateMaterials()
     {
-        this.mats = [];
-        for (let i = 0; i < EDirV3.length; i++)
-        {
-            const brightness = EDirV3[i].dot(LightDir)/4+0.75;
+        // this.mats = [];
+        // for (let i = 0; i < EDirV3.length; i++)
+        // {
+        //     const brightness = EDirV3[i].dot(LightDir)/4+0.75;
 
-            for (let j = 0; j < Textures.length; j++)
-            this.mats.push(new MeshBasicMaterial({color: new Color(brightness, brightness, brightness), map: Textures[j][i]}))
-        }
+        //     for (let j = 0; j < Textures.length; j++)
+        //         this.mats[j*EDirV3.length+i] = new MeshBasicMaterial({color: new Color(brightness, brightness, brightness), map: Textures[j][i]});
+        // }
     }
 
     ApplyMesh(scene)
@@ -146,7 +146,7 @@ export default class Chunk
 
         this.GenerateMaterials();
         
-        this.mesh = new Mesh(geometry, this.mats);
+        this.mesh = new Mesh(geometry, mats);
 
         scene.add(this.mesh);
     };
@@ -181,7 +181,7 @@ export default class Chunk
         this.UVData.push(1,1, 1,0, 0,0, 0,1);
         this.TriangleData.push(this.VertexCount+3, this.VertexCount+2, this.VertexCount, this.VertexCount+2, this.VertexCount+1, this.VertexCount);
 
-        this.addMat(Direction)
+        this.addMat(Direction, Position);
 
         this.VertexCount += 4;
     }

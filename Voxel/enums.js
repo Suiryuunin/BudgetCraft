@@ -1,4 +1,4 @@
-import { TextureLoader } from "three";
+import { Color, MeshBasicMaterial, TextureLoader } from "three";
 import { vec3 } from "../Utils/vec";
 
 export const EDirection = {
@@ -12,9 +12,9 @@ export const EDirection = {
 export const EDirV3 =
 [
     new vec3( 1 , 0 , 0 ),  // ForwardVector 
-    new vec3( 0 , 0 ,-1 ),  // LeftVector    
-    new vec3(-1 , 0 , 0 ),  // BackwardVector
     new vec3( 0 , 0 , 1 ),  // RightVector   
+    new vec3(-1 , 0 , 0 ),  // BackwardVector
+    new vec3( 0 , 0 ,-1 ),  // LeftVector    
     new vec3( 0 , 1 , 0 ),  // UpwardVector  
     new vec3( 0 ,-1 , 0 )   // DownwardVector
 ];
@@ -54,19 +54,29 @@ export const TextureIndex = {
 
 export const Textures = [
     [ // Grass
-            texLoader.load("../Assets/Textures/dirt.webp"),  // Forward
-            texLoader.load("../Assets/Textures/dirt.webp"),  // Left
-            texLoader.load("../Assets/Textures/dirt.webp"),  // Backward
-            texLoader.load("../Assets/Textures/dirt.webp"),  // Right
-            texLoader.load("../Assets/Textures/grass.webp"), // Upward
-            texLoader.load("../Assets/Textures/dirt.webp")   // Downward
+        texLoader.load("../Assets/Textures/dirt.webp"),  // Forward
+        texLoader.load("../Assets/Textures/dirt.webp"),  // Right
+        texLoader.load("../Assets/Textures/dirt.webp"),  // Backward
+        texLoader.load("../Assets/Textures/dirt.webp"),  // Left
+        texLoader.load("../Assets/Textures/grass.webp"), // Upward
+        texLoader.load("../Assets/Textures/dirt.webp")   // Downward
     ],
     [ // Dirt
         texLoader.load("../Assets/Textures/dirt.webp"),  // Forward
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Left
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Backward
         texLoader.load("../Assets/Textures/dirt.webp"),  // Right
+        texLoader.load("../Assets/Textures/dirt.webp"),  // Backward
+        texLoader.load("../Assets/Textures/dirt.webp"),  // Left
         texLoader.load("../Assets/Textures/dirt.webp"),  // Upward
         texLoader.load("../Assets/Textures/dirt.webp")   // Downward
     ]
 ];
+
+export const mats = [];
+
+for (let i = 0; i < EDirV3.length; i++)
+{
+    const brightness = EDirV3[i].dot(LightDir)/4+0.75;
+
+    for (let j = 0; j < Textures.length; j++)
+        mats[j*EDirV3.length+i] = new MeshBasicMaterial({color: new Color(brightness, brightness, brightness), map: Textures[j][i]});
+}

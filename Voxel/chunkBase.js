@@ -9,12 +9,13 @@ export default class ChunkBase {
         this.YI = {min:0,max:0};
 
         this.ChunkSize = 16;
+        this.ChunkHeight = 64;
         this.Chunks = {};
 
         this.camera = camera;
         this.scene = scene;
 
-        this.renderDistance = 1;
+        this.renderDistance = 8;
     }
 
     Init()
@@ -31,7 +32,7 @@ export default class ChunkBase {
                 if (y < this.YI.min) this.YI.min = y;
                 if (y > this.YI.max) this.YI.max = y;
 
-                this.Chunks[x][y] = new Chunk(new vec2(Math.floor((x)*this.ChunkSize), Math.floor((y)*this.ChunkSize)), this.ChunkSize, 1);
+                this.Chunks[x][y] = new Chunk(new vec2(Math.floor((x)*this.ChunkSize), Math.floor((y)*this.ChunkSize)), this.ChunkSize, this.ChunkHeight, 1);
 
                 this.Chunks[x][y].Init(this.scene);
             }
@@ -77,7 +78,7 @@ export default class ChunkBase {
                 {
                     this.Chunks[X][Y] = new Chunk(
                         new vec2(Math.floor((X)*this.ChunkSize), Math.floor((Y)*this.ChunkSize)),
-                        this.ChunkSize, 1
+                        this.ChunkSize, this.ChunkHeight, 1
                     );
                     this.Chunks[X][Y].Init(this.scene);
                 }

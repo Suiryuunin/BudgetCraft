@@ -15,7 +15,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 
 // Create a camera
-const camera = new PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.y =20;
 
 const control = new OrbitControls(camera, renderer.domElement);

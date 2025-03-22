@@ -1,12 +1,12 @@
 import { BufferAttribute, BufferGeometry, Color, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene } from "three";
 import { Clamp } from "../Utils/customMath.js";
 import { vec2, vec3 } from "../Utils/vec.js";
-import { EBlock, EDirection, EDirV3, EUnitV3, LightDir } from "./enums.js";
+import { EBlock, EDirection, EDirV3, EUnitV3, LightDir, TextureIndex, Textures } from "./enums.js";
 import { FractalBrownianMotion2D } from "./PerlinNoise.js";
 
 export default class Chunk
 {
-    constructor(Position = new vec2(0,0), ChunkSize = 16, BlockSize = 1)
+    constructor(Position = new vec2(0,0), ChunkSize = 16, ChunkHeight = 16, BlockSize = 1)
     {
         this.active = false;
 
@@ -39,7 +39,7 @@ export default class Chunk
 
 
         this.ChunkSize = ChunkSize;
-        this.YLmit = ChunkSize;
+        this.ChunkHeight = ChunkHeight;
         this.BlockSize = BlockSize;
 
         this.Blocks = [];
@@ -53,7 +53,7 @@ export default class Chunk
         this.TriVertexCount = 0;
 
         //Noise
-        this.Amplitude = 16;
+        this.Amplitude = ChunkHeight;
 
         this.mats = [];
         this.mesh = 0;
@@ -77,14 +77,14 @@ export default class Chunk
                 const X = (x*this.BlockSize + this.pos.x)*0.01;
                 const Z = (z*this.BlockSize + this.pos.z)*0.01;
 
-                const Height = Clamp(Math.round((FractalBrownianMotion2D(X, Z, 8)+1)*0.5 * this.Amplitude), 0, this.YLmit);
-                // const Height = 10;
+                const Height = Clamp(Math.round((FractalBrownianMotion2D(X, Z, 8)+.5)*0.5 * this.Amplitude), 1, this.ChunkHeight);
 
-                for (let y = 0; y < Height; y++)
+                for (let y = 0; y < Height-1; y++)
                 {
-                    this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Grass;
+                    this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Dirt;
                 }
-                for (let y = Height; y < this.YLmit; y++)
+                this.Blocks[this.GetBlockIndex(x,Height-1,z)] = EBlock.Grass;
+                for (let y = Height; y < this.ChunkHeight; y++)
                 {
                     this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Air;
                 }
@@ -112,7 +112,7 @@ export default class Chunk
     GenerateMesh()
     {
         for (let x = 0; x < this.ChunkSize; x++)
-            for (let y = 0; y < this.YLmit; y++)
+            for (let y = 0; y < this.ChunkHeight; y++)
                 for (let z = 0; z < this.ChunkSize; z++)
                     this.GenerateMeshAt(x,y,z);
     }
@@ -120,11 +120,12 @@ export default class Chunk
     GenerateMaterials()
     {
         this.mats = [];
-        for (const DirV3 of EDirV3)
+        for (let i = 0; i < EDirV3.length; i++)
         {
-            const brightness = DirV3.dot(LightDir)/2+0.5;
+            const brightness = EDirV3[i].dot(LightDir)/4+0.75;
 
-            this.mats.push(new MeshBasicMaterial({color: new Color(brightness, brightness, brightness)}))
+            for (let j = 0; j < Textures.length; j++)
+            this.mats.push(new MeshBasicMaterial({color: new Color(brightness, brightness, brightness), map: Textures[j][i]}))
         }
     }
 
@@ -170,7 +171,7 @@ export default class Chunk
 
     addMat(Direction, Position)
     {
-        this.groups.push([this.TriVertexCount, 6, Direction]);
+        this.groups.push([this.TriVertexCount, 6, Direction + TextureIndex[this.Blocks[this.GetBlockIndex(Position.x, Position.y, Position.z)].Name]*6]);
         this.TriVertexCount += 6;
     }
 
@@ -187,7 +188,7 @@ export default class Chunk
 
     Check(Position)
     {
-        if (Position.x >= this.ChunkSize || Position.y >= this.YLmit || Position.z >= this.ChunkSize || Position.x < 0 || Position.y < 0 || Position.z < 0) return true;
+        if (Position.x >= this.ChunkSize || Position.y >= this.ChunkHeight || Position.z >= this.ChunkSize || Position.x < 0 || Position.y < 0 || Position.z < 0) return true;
 
         return !this.Blocks[this.GetBlockIndex(Position.x, Position.y, Position.z)].Solid;
     }
@@ -219,6 +220,6 @@ export default class Chunk
 
     GetBlockIndex(x,y,z)
     {
-        return z * this.ChunkSize * this.ChunkSize + y * this.YLmit + x;
+        return y * this.ChunkHeight * this.ChunkSize + z * this.ChunkSize + x;
     }
 }

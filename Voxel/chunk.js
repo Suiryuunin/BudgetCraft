@@ -6,12 +6,15 @@ import { FractalBrownianMotion2D } from "./PerlinNoise.js";
 
 export default class Chunk
 {
-    constructor(Position = new vec2(0,0), ChunkSize = 16, ChunkHeight = 16, BlockSize = 1)
+    constructor(ChunkBase, Position = new vec2(0,0), Index = new vec2(0,0), ChunkSize = 16, ChunkHeight = 16, BlockSize = 1)
     {
+        this.ChunkBase = ChunkBase;
         this.active = false;
 
         this.pos = new vec3(Position.x, 0, Position.y);
-        this.pos2 = new vec2(Position.x, Position.y);
+        this.pos2 = Position;
+
+        this.Index = Index;
 
         this.BlockVertexData = [
             new vec3(1, 1, 1),
@@ -39,6 +42,7 @@ export default class Chunk
 
 
         this.ChunkSize = ChunkSize;
+        this.invChunkSize = 1/ChunkSize;
         this.ChunkHeight = ChunkHeight;
         this.BlockSize = BlockSize;
 
@@ -84,7 +88,12 @@ export default class Chunk
                     this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Dirt;
                 }
                 this.Blocks[this.GetBlockIndex(x,Height-1,z)] = EBlock.Grass;
-                for (let y = Height; y < this.ChunkHeight; y++)
+                
+                for (let y = Height; y < 16; y++)
+                {
+                    this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Water;
+                }
+                for (let y = Math.max(Height, 16); y < this.ChunkHeight; y++)
                 {
                     this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Air;
                 }
@@ -98,13 +107,14 @@ export default class Chunk
 
     GenerateMeshAt(x, y, z)
     {
-        if (this.Blocks[this.GetBlockIndex(x, y, z)] != EBlock.Air)
+        if (this.Blocks[this.GetBlockIndex(x, y, z)].Visible)
         {
             const Position = new vec3(x, y, z);
 
             for (const Direction of [EDirection.Forward, EDirection.Right, EDirection.Back, EDirection.Left, EDirection.Up, EDirection.Down])
             {
-                if (this.Check(this.GetPositionInDirection(Direction, Position)))
+                const NeighborBlock = this.GetBlockInDirection(Direction, Position);
+                if (NeighborBlock == null || ((this.Blocks[this.GetBlockIndex(x, y, z)].Full || (this.Blocks[this.GetBlockIndex(x, y, z)].Name != NeighborBlock.Name)) && this.Check(NeighborBlock)))
                     this.CreateFace(Direction, Position);
             }
         }
@@ -186,11 +196,11 @@ export default class Chunk
         this.VertexCount += 4;
     }
 
-    Check(Position)
+    Check(Block)
     {
-        if (Position.x >= this.ChunkSize || Position.y >= this.ChunkHeight || Position.z >= this.ChunkSize || Position.x < 0 || Position.y < 0 || Position.z < 0) return true;
+        if (Block == null) return true;
 
-        return !this.Blocks[this.GetBlockIndex(Position.x, Position.y, Position.z)].Solid;
+        return !Block.Full;
     }
 
     GetFaceVertices(Direction, Position = new vec3(0,0,0))
@@ -215,6 +225,47 @@ export default class Chunk
         case EDirection.Up 	    : return Position.add(EUnitV3.UpwardVector  );
         case EDirection.Down	: return Position.add(EUnitV3.DownwardVector);
         default: console.error("invalid direction");
+        }
+    }
+    GetBlockInDirection(Direction, Position)
+    {
+        const NPos = this.GetPositionInDirection(Direction, Position);
+        
+        switch (true)
+        {
+        case (NPos.x >= this.ChunkSize):
+        {
+            if (this.ChunkBase.Chunks[this.Index.x + 1] == undefined) return null;
+            const neighborChunk = this.ChunkBase.Chunks[this.Index.x + 1][this.Index.y];
+            if (neighborChunk == undefined) return null;
+
+            return neighborChunk.Blocks[neighborChunk.GetBlockIndex(NPos.x-this.ChunkSize, NPos.y, NPos.z)];
+        }
+        case (NPos.z >= this.ChunkSize):
+        {
+            if (this.ChunkBase.Chunks[this.Index.x] == undefined) return null;
+            const neighborChunk = this.ChunkBase.Chunks[this.Index.x][this.Index.y + 1];
+            if (neighborChunk == undefined) return null;
+
+            return neighborChunk.Blocks[neighborChunk.GetBlockIndex(NPos.x, NPos.y, NPos.z-this.ChunkSize)];
+        }
+        case (NPos.x < 0):
+        {
+            if (this.ChunkBase.Chunks[this.Index.x - 1] == undefined) return null;
+            const neighborChunk = this.ChunkBase.Chunks[this.Index.x - 1][this.Index.y];
+            if (neighborChunk == undefined) return null;
+
+            return neighborChunk.Blocks[neighborChunk.GetBlockIndex(NPos.x+this.ChunkSize, NPos.y, NPos.z)];
+        }
+        case (NPos.z < 0):
+        {
+            if (this.ChunkBase.Chunks[this.Index.x] == undefined) return null;
+            const neighborChunk = this.ChunkBase.Chunks[this.Index.x][this.Index.y - 1];
+            if (neighborChunk == undefined) return null;
+
+            return neighborChunk.Blocks[neighborChunk.GetBlockIndex(NPos.x, NPos.y, NPos.z+this.ChunkSize)];
+        }
+        default: return this.Blocks[this.GetBlockIndex(NPos.x, NPos.y, NPos.z)];
         }
     }
 

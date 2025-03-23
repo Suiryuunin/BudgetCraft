@@ -1,5 +1,6 @@
 import { Color, MeshBasicMaterial, TextureLoader } from "three";
 import { vec3 } from "../Utils/vec";
+import { EDirV3 } from "../Utils/utils";
 
 export const EDirection = {
     Forward : 0,
@@ -9,15 +10,6 @@ export const EDirection = {
     Up      : 4,
     Down    : 5
 }
-export const EDirV3 =
-[
-    new vec3( 1 , 0 , 0 ),  // ForwardVector 
-    new vec3( 0 , 0 , 1 ),  // RightVector   
-    new vec3(-1 , 0 , 0 ),  // BackwardVector
-    new vec3( 0 , 0 ,-1 ),  // LeftVector    
-    new vec3( 0 , 1 , 0 ),  // UpwardVector  
-    new vec3( 0 ,-1 , 0 )   // DownwardVector
-];
 
 export const EBlock = {
     Air: {
@@ -50,15 +42,6 @@ export const EBlock = {
     }
 };
 
-export const EUnitV3 = {
-    ForwardVector   : new vec3(1,0,0),
-    RightVector     : new vec3(0,0,1),
-    BackwardVector  : new vec3(-1,0,0),
-    LeftVector      : new vec3(0,0,-1),
-    UpwardVector    : new vec3(0,1,0),
-    DownwardVector  : new vec3(0,-1,0)
-};
-
 export const LightDir = new vec3(0.6,0.8,0.5);
 
 const texLoader = new TextureLoader();
@@ -73,32 +56,41 @@ export const Textures = [
     [ // Grass
         false, // Transparent?
         0, // Opacity
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Forward
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Right
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Backward
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Left
-        texLoader.load("../Assets/Textures/grass.webp"), // Upward
-        texLoader.load("../Assets/Textures/dirt.webp")   // Downward
+        [1,1,1],
+        [
+            texLoader.load("../Assets/Textures/dirt.webp"),  // Forward
+            texLoader.load("../Assets/Textures/dirt.webp"),  // Right
+            texLoader.load("../Assets/Textures/dirt.webp"),  // Backward
+            texLoader.load("../Assets/Textures/dirt.webp"),  // Left
+            texLoader.load("../Assets/Textures/grass.webp"), // Upward
+            texLoader.load("../Assets/Textures/dirt.webp")   // Downward
+        ]
     ],
     [ // Dirt
         false, // Transparent?
         0, // Opacity
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Forward
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Right
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Backward
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Left
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Upward
-        texLoader.load("../Assets/Textures/dirt.webp")   // Downward
+        [1,1,1],
+        [
+            texLoader.load("../Assets/Textures/dirt.webp"),  // Forward
+            texLoader.load("../Assets/Textures/dirt.webp"),  // Right
+            texLoader.load("../Assets/Textures/dirt.webp"),  // Backward
+            texLoader.load("../Assets/Textures/dirt.webp"),  // Left
+            texLoader.load("../Assets/Textures/dirt.webp"),  // Upward
+            texLoader.load("../Assets/Textures/dirt.webp")   // Downward
+        ]
     ],
     [ // Water
         true, // Transparent?
         0.7, // Opacity
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Forward
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Right
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Backward
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Left
-        texLoader.load("../Assets/Textures/dirt.webp"),  // Upward
-        texLoader.load("../Assets/Textures/dirt.webp")   // Downward
+        [0.737,0.941,0.976],
+        [
+            texLoader.load("../Assets/Textures/water.webp"),  // Forward
+            texLoader.load("../Assets/Textures/water.webp"),  // Right
+            texLoader.load("../Assets/Textures/water.webp"),  // Backward
+            texLoader.load("../Assets/Textures/water.webp"),  // Left
+            texLoader.load("../Assets/Textures/water.webp"),  // Upward
+            texLoader.load("../Assets/Textures/water.webp")   // Downward
+        ]
     ]
 ];
 
@@ -111,6 +103,6 @@ for (let i = 0; i < EDirV3.length; i++)
     for (let j = 0; j < Textures.length; j++)
     {
         const index = j*EDirV3.length+i;
-        mats[index] = new MeshBasicMaterial({color: new Color(brightness, brightness, brightness), map: Textures[j][i+2], transparent: Textures[j][0], opacity: Textures[j][1]});
+        mats[index] = new MeshBasicMaterial({color: new Color(brightness*Textures[j][2][0], brightness*Textures[j][2][1], brightness*Textures[j][2][2]), map: Textures[j][3][i], transparent: Textures[j][0], opacity: Textures[j][1]});
     }
 }

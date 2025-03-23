@@ -1,5 +1,0 @@
-// Grass
-#9bffce
-#88ffc5
-#2bff99
-#45ffa5

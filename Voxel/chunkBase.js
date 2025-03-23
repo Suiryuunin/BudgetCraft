@@ -9,13 +9,14 @@ export default class ChunkBase {
         this.YI = {min:0,max:0};
 
         this.ChunkSize = 16;
+        this.recChunkSize = 1/this.ChunkSize;
         this.ChunkHeight = 64;
         this.Chunks = {};
 
         this.camera = camera;
         this.scene = scene;
 
-        this.renderDistance = 6;
+        this.renderDistance = 4;
     }
 
     Init()

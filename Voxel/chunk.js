@@ -1,7 +1,8 @@
 import { BufferAttribute, BufferGeometry, Color, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene } from "three";
 import { Clamp } from "../Utils/customMath.js";
 import { vec2, vec3 } from "../Utils/vec.js";
-import { EBlock, EDirection, EDirV3, EUnitV3, LightDir, mats, TextureIndex, Textures } from "./enums.js";
+import { EBlock, EDirection, LightDir, mats, TextureIndex, Textures } from "./enums.js";
+import { EDirV3, EUnitV3 } from "../Utils/utils.js"
 import { FractalBrownianMotion2D } from "./PerlinNoise.js";
 
 export default class Chunk
@@ -118,10 +119,15 @@ export default class Chunk
                 if (NeighborBlock == null)
                 {
                     if (Block.Full)
-                        this.CreateFace(Direction, Position);
+                        this.CreateFace(Direction, Position, 0);
                 }
                 else if (((this.Blocks[this.GetBlockIndex(x, y, z)].Name != NeighborBlock.Name)) && this.Check(NeighborBlock))
-                    this.CreateFace(Direction, Position);
+                {
+                    let offset = 0;
+                    if (Block.Fluid && Direction == EDirection.Up) offset = -0.0625;
+
+                    this.CreateFace(Direction, Position, offset);
+                }
             }
         }
     };
@@ -131,18 +137,6 @@ export default class Chunk
             for (let y = 0; y < this.ChunkHeight; y++)
                 for (let z = 0; z < this.ChunkSize; z++)
                     this.GenerateMeshAt(x,y,z);
-    }
-
-    GenerateMaterials()
-    {
-        // this.mats = [];
-        // for (let i = 0; i < EDirV3.length; i++)
-        // {
-        //     const brightness = EDirV3[i].dot(LightDir)/4+0.75;
-
-        //     for (let j = 0; j < Textures.length; j++)
-        //         this.mats[j*EDirV3.length+i] = new MeshBasicMaterial({color: new Color(brightness, brightness, brightness), map: Textures[j][i]});
-        // }
     }
 
     ApplyMesh(scene)
@@ -159,8 +153,6 @@ export default class Chunk
         {
             geometry.addGroup(group[0], group[1], group[2]);
         }
-
-        this.GenerateMaterials();
         
         this.mesh = new Mesh(geometry, mats);
 
@@ -191,9 +183,9 @@ export default class Chunk
         this.TriVertexCount += 6;
     }
 
-    CreateFace(Direction, Position)
+    CreateFace(Direction, Position, offset = 0)
     {
-        this.VertexData.push(...this.GetFaceVertices(Direction, Position));
+        this.VertexData.push(...this.GetFaceVertices(Direction, Position, offset));
         this.UVData.push(1,1, 1,0, 0,0, 0,1);
         this.TriangleData.push(this.VertexCount+3, this.VertexCount+2, this.VertexCount, this.VertexCount+2, this.VertexCount+1, this.VertexCount);
 
@@ -209,13 +201,13 @@ export default class Chunk
         return !Block.Full;
     }
 
-    GetFaceVertices(Direction, Position = new vec3(0,0,0))
+    GetFaceVertices(Direction, Position = new vec3(0,0,0), offset = 0)
     {
         let Vertices = [];
 
         for (let i = 0; i < 4; i++)
         {
-            Vertices.push(...(this.BlockVertexData[this.BlockTriangleData[Math.floor(i + Direction * 4)]].add(Position.mult(this.BlockSize)).array()));
+            Vertices.push(...(this.BlockVertexData[this.BlockTriangleData[Math.floor(i + Direction * 4)]].add(Position.mult(this.BlockSize)).add(EDirV3[Direction].mult(offset)).array()));
         }
         return Vertices;
     }

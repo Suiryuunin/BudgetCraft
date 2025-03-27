@@ -1,33 +1,21 @@
 "use strict";
 
-import { BoxGeometry, Color, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
+import { AmbientLight, BoxGeometry, CameraHelper, DirectionalLight, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { FractalBrownianMotion2D, StandardPerlin2D } from "./Voxel/PerlinNoise";
 import { vec2 } from "./Utils/vec";
 import Engine from "./Engine/engine";
-import { OrbitControls } from "three/examples/jsm/Addons.js";
 import ChunkBase from "./Voxel/chunkBase";
 import { Player } from "./Components/player";
+import { camera, canvas, renderer, scene } from "./Engine/threeInit";
+import { pp } from "./Engine/pp";
+import { ThreeAxis } from "./Utils/utils";
 
-
-const canvas = document.querySelector('canvas');
-        
-canvas.addEventListener("click", async () => {
-    await canvas.requestPointerLock();
-});
-
-const renderer = new WebGLRenderer({ canvas: canvas });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-
-// Create a camera
-const camera = new PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-// const control = new OrbitControls(camera, renderer.domElement);
-
-const scene = new Scene();
-scene.background = new Color(0xbcf0f9);
-
-
+const light = new DirectionalLight(0xffffff);
+light.position.set(0.6,0.8,0.5)
+light.intensity = 2;
+scene.add(light);
+const alight = new AmbientLight();
+scene.add(alight);
 
 const chunkBase = new ChunkBase(camera, scene);
 chunkBase.Init();
@@ -43,15 +31,17 @@ const update = (delta) => {
 }
 
 const render = () => {
-    renderer.render(scene, camera);
+    // renderer.render(scene, camera);
+    pp.render();
 }
 
-const enigne = new Engine(30, update, render);
+const enigne = new Engine(60, update, render);
 enigne.start();
 
 window.addEventListener('resize', () => {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    pp.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     canvas.width = window.innerWidth;

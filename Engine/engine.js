@@ -12,6 +12,8 @@ export default class Engine
         this.fps = fps;
         this.invFps = 1/fps;
 
+        this.p = document.querySelector("p");
+
         this.run = (time) =>
         {
             this.time = time;
@@ -25,7 +27,7 @@ export default class Engine
                 );
                 this.render();
 
-                document.querySelector("p").innerHTML = 1000/this.delta;
+                this.p.innerHTML = 1000/this.delta;
 
                 this.timeStamp = time;
             }

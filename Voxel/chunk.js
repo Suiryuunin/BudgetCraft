@@ -2,7 +2,7 @@ import { BufferAttribute, BufferGeometry, Color, Mesh, MeshBasicMaterial, MeshSt
 import { Clamp } from "../Utils/customMath.js";
 import { vec2, vec3 } from "../Utils/vec.js";
 import { EBlock, EDirection, LightDir, mats, TextureIndex, Textures } from "./enums.js";
-import { EDirV3, EUnitV3 } from "../Utils/utils.js"
+import { EDirArr, EDirV3, EUnitV3 } from "../Utils/utils.js"
 import { FractalBrownianMotion2D } from "./PerlinNoise.js";
 
 export default class Chunk
@@ -38,6 +38,7 @@ export default class Chunk
         ];
 
         this.VertexData = [];
+        this.NormalData = [];
         this.UVData = [];
         this.TriangleData = [];
 
@@ -88,7 +89,8 @@ export default class Chunk
                 {
                     this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Dirt;
                 }
-                this.Blocks[this.GetBlockIndex(x,Height-1,z)] = EBlock.Grass;
+                if (Height < 16) this.Blocks[this.GetBlockIndex(x,Height-1,z)] = EBlock.Dirt;
+                else this.Blocks[this.GetBlockIndex(x,Height-1,z)] = EBlock.Grass;
                 
                 for (let y = Height; y < 16; y++)
                 {
@@ -144,6 +146,7 @@ export default class Chunk
         const geometry = new BufferGeometry();
 
         geometry.setAttribute("position", new BufferAttribute(new Float32Array(this.VertexData), 3));
+        geometry.setAttribute("normal", new BufferAttribute(new Float32Array(this.NormalData), 3));
         geometry.setAttribute("uv", new BufferAttribute(new Float32Array(this.UVData), 2));
 
         geometry.setIndex(this.TriangleData);
@@ -186,7 +189,8 @@ export default class Chunk
     CreateFace(Direction, Position, offset = 0)
     {
         this.VertexData.push(...this.GetFaceVertices(Direction, Position, offset));
-        this.UVData.push(1,1, 1,0, 0,0, 0,1);
+        this.NormalData.push(...EDirArr[Direction],...EDirArr[Direction],...EDirArr[Direction],...EDirArr[Direction]);
+        this.UVData.push(0,1, 1,1, 1,0, 0,0);
         this.TriangleData.push(this.VertexCount+3, this.VertexCount+2, this.VertexCount, this.VertexCount+2, this.VertexCount+1, this.VertexCount);
 
         this.addMat(Direction, Position);

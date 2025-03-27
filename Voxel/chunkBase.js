@@ -9,6 +9,8 @@ export default class ChunkBase {
         this.YI = {min:0,max:0};
 
         this.ChunkSize = 16;
+        this.BlockSize = 1;
+        this.recBlockSize = 1/this.BlockSize;
         this.recChunkSize = 1/this.ChunkSize;
         this.ChunkHeight = 64;
         this.Chunks = {};
@@ -16,7 +18,7 @@ export default class ChunkBase {
         this.camera = camera;
         this.scene = scene;
 
-        this.renderDistance = 4;
+        this.renderDistance = 1;
     }
 
     Init()
@@ -33,7 +35,7 @@ export default class ChunkBase {
                 if (y < this.YI.min) this.YI.min = y;
                 if (y > this.YI.max) this.YI.max = y;
 
-                this.Chunks[x][y] = new Chunk(this, new vec2(Math.floor(x*this.ChunkSize), Math.floor(y*this.ChunkSize)), new vec2(x,y), this.ChunkSize, this.ChunkHeight, 1);
+                this.Chunks[x][y] = new Chunk(this, new vec2(Math.floor(x*this.ChunkSize*this.BlockSize), Math.floor(y*this.ChunkSize*this.BlockSize)), new vec2(x,y), this.ChunkSize, this.ChunkHeight, this.BlockSize);
 
                 this.Chunks[x][y].Init(this.scene);
             }
@@ -63,8 +65,8 @@ export default class ChunkBase {
         {
             for (let y = -this.renderDistance; y <= this.renderDistance; y++)
             {
-                const X = Math.floor(x + Math.floor(this.camera.position.x/this.ChunkSize));
-                const Y = Math.floor(y + Math.floor(this.camera.position.z/this.ChunkSize));
+                const X = Math.floor(x + Math.floor(this.camera.position.x*this.recChunkSize/this.BlockSize));
+                const Y = Math.floor(y + Math.floor(this.camera.position.z*this.recChunkSize/this.BlockSize));
                 
                 
                 if (this.Chunks[X] == undefined)
@@ -78,8 +80,8 @@ export default class ChunkBase {
                 if (this.Chunks[X][Y] == undefined)
                 {
                     this.Chunks[X][Y] = new Chunk(this, 
-                        new vec2(Math.floor((X)*this.ChunkSize), Math.floor((Y)*this.ChunkSize)), new vec2(X,Y),
-                        this.ChunkSize, this.ChunkHeight, 1
+                        new vec2(Math.floor((X)*this.ChunkSize*this.BlockSize), Math.floor((Y)*this.ChunkSize*this.BlockSize)), new vec2(X,Y),
+                        this.ChunkSize, this.ChunkHeight, this.BlockSize
                     );
                     this.Chunks[X][Y].Init(this.scene);
                 }

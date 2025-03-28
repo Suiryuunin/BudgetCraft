@@ -27,7 +27,7 @@ export default class Engine
                 );
                 this.render();
 
-                this.p.innerHTML = 1000/this.delta;
+                this.p.innerHTML = `Fps: ${(1000/this.delta).toFixed(2)}`;
 
                 this.timeStamp = time;
             }

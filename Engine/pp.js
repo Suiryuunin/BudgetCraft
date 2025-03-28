@@ -1,21 +1,27 @@
-import { EffectComposer, GTAOPass, OutlinePass, OutputPass, RenderPass, RenderPixelatedPass, ShaderPass, SobelOperatorShader, SSAOPass } from "three/examples/jsm/Addons.js";
+import { EffectComposer, GTAOPass, OutlinePass, OutputPass, RenderPass, RenderPixelatedPass, ShaderPass, SobelOperatorShader, SSAOPass, UnrealBloomPass } from "three/examples/jsm/Addons.js";
 import { camera, renderer, scene } from "./threeInit";
 import { Vector2 } from "three";
 
 // PP
 export const pp = new EffectComposer(renderer);
 
-// const renderPass = new RenderPass(scene, camera);
-// pp.addPass(renderPass);
+const renderPass = new RenderPass(scene, camera);
+pp.addPass(renderPass);
 
 // const outlinePass = new OutlinePass(new Vector2(window.innerWidth, window.innerHeight), scene, camera);
 
 // pp.addPass(outlinePass);
 
-const renderPixelatedPass = new RenderPixelatedPass( 1, scene, camera );
-renderPixelatedPass.normalEdgeStrength = 0;
-renderPixelatedPass.depthEdgeStrength = 0;
-pp.addPass( renderPixelatedPass );
+const res = new Vector2(window.innerWidth, window.innerHeight);
+const resolution = new Vector2(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
+
+// const renderPixelatedPass = new RenderPixelatedPass( 1, scene, camera );
+// renderPixelatedPass.normalEdgeStrength = 0;
+// renderPixelatedPass.depthEdgeStrength = 0;
+// pp.addPass( renderPixelatedPass );
+
+const bloomPass = new UnrealBloomPass(res, .2, 1, 0.95);
+pp.addPass(bloomPass);
 
 // const gtaoPass = new GTAOPass(scene, camera, window.innerWidth, window.innerHeight);
 // gtaoPass.output = GTAOPass.OUTPUT.Default;

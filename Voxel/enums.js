@@ -1,4 +1,4 @@
-import { Color, MeshBasicMaterial, MeshPhongMaterial, MeshStandardMaterial, TextureLoader, Vector2 } from "three";
+import { Color, DoubleSide, MeshBasicMaterial, MeshPhongMaterial, MeshStandardMaterial, TextureLoader, Vector2 } from "three";
 import { vec3 } from "../Utils/vec";
 import { EDirV3 } from "../Utils/utils";
 
@@ -107,7 +107,7 @@ for (let i = 0; i < EDirV3.length; i++)
     {
         const index = j*EDirV3.length+i;
         if (Textures[j][0])
-            mats[index] = new MeshPhongMaterial({color: new Color(brightness*Textures[j][2][0], brightness*Textures[j][2][1], brightness*Textures[j][2][2]), map: Textures[j][3][i], transparent: Textures[j][0], opacity: Textures[j][1], specular:0x777777, shininess:64, normalMap:waterNorm, normalScale:new Vector2(0.5,0.5)});
+            mats[index] = new MeshPhongMaterial({color: new Color(brightness*Textures[j][2][0], brightness*Textures[j][2][1], brightness*Textures[j][2][2]), map: Textures[j][3][i], transparent: Textures[j][0], opacity: Textures[j][1], side:DoubleSide, specular:0x777777, shininess:64, normalMap:waterNorm, normalScale:new Vector2(0.5,0.5)});
         else
             mats[index] = new MeshBasicMaterial({color: new Color(brightness*Textures[j][2][0], brightness*Textures[j][2][1], brightness*Textures[j][2][2]), map: Textures[j][3][i], transparent: Textures[j][0], opacity: Textures[j][1]});
     }

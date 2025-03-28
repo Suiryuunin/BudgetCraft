@@ -1,4 +1,4 @@
-import { Color, FogExp2, PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import { Color, Fog, FogExp2, PerspectiveCamera, Scene, WebGLRenderer } from "three";
 
 export const canvas = document.querySelector('canvas');
         
@@ -18,5 +18,7 @@ export const camera = new PerspectiveCamera(90, window.innerWidth / window.inner
 export const scene = new Scene();
 scene.background = new Color(0xbcf0f9);
 
-const density = 0.1;
-scene.fog = new FogExp2(0xbcf0f9, density);
+// const density = 0.1;
+// scene.fog = new FogExp2(0xbcf0f9, density);
+
+scene.fog = new Fog(0xbcf0f9, 0.1, 15);

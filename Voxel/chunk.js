@@ -72,6 +72,7 @@ export default class Chunk
         this.GenerateBlocks();
         this.GenerateMesh();
         this.ApplyMesh(scene);
+        this.clearData();
     }
 
     GenerateBlocks()
@@ -161,6 +162,11 @@ export default class Chunk
 
         scene.add(this.mesh);
     };
+
+    clearData()
+    {
+        this.TriangleData = this.VertexData = this.NormalData = this.UVData = [];
+    }
 
     // UpdateMesh(scene)
     // {

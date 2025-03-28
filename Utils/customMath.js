@@ -22,3 +22,8 @@ export function Clamp(value, min, max)
 {
     return Math.min(Math.max(value, min), max);
 }
+
+export function V2Mag(a,b)
+{
+    return Math.sqrt(a*a+b*b);
+}

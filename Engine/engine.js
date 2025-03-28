@@ -12,7 +12,7 @@ export default class Engine
         this.fps = fps;
         this.invFps = 1/fps;
 
-        this.p = document.querySelector("p");
+        this.p = document.getElementById("Fps");
 
         this.run = (time) =>
         {

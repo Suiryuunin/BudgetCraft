@@ -6,7 +6,7 @@ import { vec2, vec3 } from "./Utils/vec";
 import Engine from "./Engine/engine";
 import ChunkBase from "./Voxel/chunkBase";
 import { Player } from "./Components/player";
-import { camera, canvas, renderer, scene } from "./Engine/threeInit";
+import { camera, canvas, renderer, scene, UICanvas, UICtx } from "./Engine/threeInit";
 import { pp } from "./Engine/pp";
 import { ThreeAxis } from "./Utils/utils";
 import { EBlock } from "./Voxel/enums";
@@ -26,24 +26,30 @@ const player = new Player(camera, new Vector3(0,20,0));
 
 // Gameloop
 const update = (delta) => {
-    player.Update(delta, canvas, chunkBase);
+    player.Update(delta, UICanvas, chunkBase);
     
     chunkBase.Update();
 }
 
+const hotbarImg = new Image(288, 32);
+hotbarImg.src = "./Assets/Textures/Inventory/hotbar.png";
+
 const render = () => {
     // renderer.render(scene, camera);
     pp.render();
+    UICtx.clearRect(0,0,UICanvas.width, UICanvas.height)
+    UICtx.drawImage(hotbarImg, 0,0,288,32,0,0,288*2,64);
 }
 
 window.addEventListener("wheel", ()=>{
     chunkBase.OverwriteBlock(EBlock.Water, new vec3(1, 20, 1));
 })
 
-const enigne = new Engine(60, update, render);
+const enigne = new Engine(30, update, render);
 enigne.start();
 
-window.addEventListener('resize', () => {
+function Resize()
+{
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     pp.setSize(window.innerWidth, window.innerHeight);
@@ -51,7 +57,12 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-});
+    UICanvas.width = window.innerWidth;
+    UICanvas.height = window.innerHeight;
+}
+
+window.addEventListener('load', Resize);
+window.addEventListener('resize', Resize);
 
 
 

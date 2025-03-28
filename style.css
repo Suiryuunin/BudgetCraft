@@ -1,4 +1,15 @@
+@font-face {
+    font-family: VCR_OSD;
+    src: url(./Assets/VCR_OSD.ttf);
+}
+
 * {
     margin: 0;
     overflow: hidden;
+    font-family: VCR_OSD, monospace;
+}
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
 }

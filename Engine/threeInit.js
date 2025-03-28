@@ -1,9 +1,12 @@
 import { Color, Fog, FogExp2, PerspectiveCamera, Scene, WebGLRenderer } from "three";
 
 export const canvas = document.querySelector('canvas');
-        
-canvas.addEventListener("click", async () => {
-    await canvas.requestPointerLock();
+
+export const UICanvas = document.getElementById("UI");
+export const UICtx = UICanvas.getContext("2d");
+
+UICanvas.addEventListener("click", async () => {
+    await UICanvas.requestPointerLock();
 });
 
 export const renderer = new WebGLRenderer({ canvas: canvas });

@@ -2,13 +2,14 @@
 
 import { AmbientLight, BoxGeometry, CameraHelper, DirectionalLight, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { FractalBrownianMotion2D, StandardPerlin2D } from "./Voxel/PerlinNoise";
-import { vec2 } from "./Utils/vec";
+import { vec2, vec3 } from "./Utils/vec";
 import Engine from "./Engine/engine";
 import ChunkBase from "./Voxel/chunkBase";
 import { Player } from "./Components/player";
 import { camera, canvas, renderer, scene } from "./Engine/threeInit";
 import { pp } from "./Engine/pp";
 import { ThreeAxis } from "./Utils/utils";
+import { EBlock } from "./Voxel/enums";
 
 const light = new DirectionalLight(0xffffff);
 light.position.set(0.6,0.8,0.5)
@@ -34,6 +35,10 @@ const render = () => {
     // renderer.render(scene, camera);
     pp.render();
 }
+
+window.addEventListener("wheel", ()=>{
+    chunkBase.OverwriteBlock(EBlock.Water, new vec3(1, 20, 1));
+})
 
 const enigne = new Engine(60, update, render);
 enigne.start();

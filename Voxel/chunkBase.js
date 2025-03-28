@@ -1,5 +1,5 @@
 import { Camera, Scene } from "three";
-import { vec2 } from "../Utils/vec";
+import { vec2, vec3 } from "../Utils/vec";
 import Chunk from "./chunk";
 
 export default class ChunkBase {
@@ -40,6 +40,20 @@ export default class ChunkBase {
                 this.Chunks[x][y].Init(this.scene);
             }
         }
+    }
+
+    OverwriteBlock(BlockType, Position)
+    {
+        const ChunkPos = new vec2(Math.floor(Position.x*this.recChunkSize), Math.floor(Position.z*this.recChunkSize));
+        const LocalPos = new vec3(
+            Math.floor(Position.x-ChunkPos.x*this.ChunkSize),
+            Math.floor(Position.y),
+            Math.floor(Position.z-ChunkPos.y*this.ChunkSize));
+
+        const chunk = this.Chunks[ChunkPos.x][ChunkPos.y];
+
+        chunk.OverwriteBlockAt(BlockType, Position);
+        chunk.ReMesh(this.scene);
     }
 
     Update()

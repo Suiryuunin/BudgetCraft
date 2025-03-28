@@ -74,6 +74,19 @@ export default class Chunk
         this.ApplyMesh(scene);
         this.clearData();
     }
+    ReMesh(scene)
+    {
+        scene.remove(this.mesh);
+        this.active = true;
+        this.mesh=undefined;
+        this.GenerateMesh();
+        this.ApplyMesh(scene);
+        this.clearData();
+    }
+    OverwriteBlockAt(BlockType, Position)
+    {
+        this.Blocks[this.GetBlockIndex(Position.x, Position.y, Position.z)] = BlockType;
+    }
 
     GenerateBlocks()
     {
@@ -165,26 +178,14 @@ export default class Chunk
 
     clearData()
     {
-        this.TriangleData = this.VertexData = this.NormalData = this.UVData = [];
+        this.VertexData = [];
+        this.NormalData = [];
+        this.UVData = [];
+        this.TriangleData = [];
+        this.groups = [];
+        this.TriVertexCount = 0;
+        this.VertexCount = 0;
     }
-
-    // UpdateMesh(scene)
-    // {
-    //     scene.remove(this.mesh);
-        
-    //     const geometry = new BufferGeometry();
-
-    //     geometry.setAttribute("position", new BufferAttribute(new Float32Array(this.VertexData), 3));
-    //     geometry.setAttribute("uv", new BufferAttribute(new Float32Array(this.UVData), 2));
-
-    //     geometry.setIndex(this.TriangleData);
-
-    //     const material = new MeshBasicMaterial({color: 0xffffff, wireframe: false});
-        
-    //     this.mesh = new Mesh(geometry, material);
-
-    //     scene.add(this.mesh);
-    // }
 
     addMat(Direction, Position)
     {

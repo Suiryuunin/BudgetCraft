@@ -72,6 +72,10 @@ export default class ChunkBase {
         chunk.OverwriteBlockAt(BlockType, blockPos);
         chunk.ReMesh(this.scene);
     }
+    GetBlockAt(chunkPos, blockPos)
+    {
+        return this.Chunks[chunkPos.x][chunkPos.z].Blocks[this.Chunks[chunkPos.x][chunkPos.z].GetBlockIndex(blockPos.x,blockPos.y,blockPos.z)];
+    }
 
     Update()
     {

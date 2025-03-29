@@ -1,9 +1,10 @@
-import { BufferAttribute, BufferGeometry, Color, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene } from "three";
+import { BufferAttribute, BufferGeometry, Color, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene, Vector3 } from "three";
 import { Clamp } from "../Utils/customMath.js";
 import { vec2, vec3 } from "../Utils/vec.js";
 import { EBlock, EDirection, LightDir, mats, TextureIndex, Textures } from "./enums.js";
 import { EDirArr, EDirV3, EUnitV3 } from "../Utils/utils.js"
 import { FractalBrownianMotion2D, StandardPerlin2D } from "./PerlinNoise.js";
+import { GenerateTreeAt } from "./tree.js";
 
 export default class Chunk
 {
@@ -113,14 +114,20 @@ export default class Chunk
 
                 const Height = Clamp(Math.round(noiseValue), 1, this.ChunkHeight);
 
-                for (let y = 0; y < Height-1; y++)
+                for (let y = 0; y < Height-4; y++)
+                {
+                    this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Stone;
+                }
+                for (let y = Height-4; y < Height-1; y++)
                 {
                     this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Dirt;
                 }
                 if (Height <= this.WaterLevel)
-                    for (let i = 0; i <= 3; i++)
-                    this.Blocks[this.GetBlockIndex(x,Height-i,z)] = EBlock.Sand;
-                else this.Blocks[this.GetBlockIndex(x,Height-1,z)] = EBlock.Grass;
+                    for (let i = 0; i <= 3; i++) this.Blocks[this.GetBlockIndex(x,Height-i,z)] = EBlock.Sand;
+                else
+                {
+                    this.Blocks[this.GetBlockIndex(x,Height-1,z)] = EBlock.Grass;
+                }
                 
                 for (let y = Height; y < this.WaterLevel; y++)
                 {
@@ -130,10 +137,20 @@ export default class Chunk
                 {
                     this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Air;
                 }
-                //for (let z = 0; z < rand() % Height; z++)
-                //{
-                //	Blocks[GetBlockIndex(x,y,z)] = EBlock.Air;
-                //}
+                
+                    
+                // if (Height-1 > this.WaterLevel &&
+                //     x > 2 && x < this.ChunkSize - 2 &&
+                //     z > 2 && z < this.ChunkSize - 2 &&
+                //     Math.random()>0.96 && Height+1 < this.ChunkHeight-7)
+                // {
+                //     GenerateTreeAt(new Vector3(x,Height,z), (Type, Position) => {
+                //         let block = this.Blocks[this.GetBlockIndex(Position.x,Position.y,Position.z)];
+                //         if (block != undefined && !block.Collide) this.Blocks[this.GetBlockIndex(Position.x,Position.y,Position.z)] = Type;
+                //     });
+
+                // }
+                    
             }
         }
     }
@@ -276,6 +293,6 @@ export default class Chunk
 
     GetBlockIndex(x,y,z)
     {
-        return y * this.ChunkHeight * this.ChunkSize + z * this.ChunkSize + x;
+        return y * this.ChunkSize * this.ChunkSize + z * this.ChunkSize + x;
     }
 }

@@ -23,6 +23,8 @@ export class Player
         this.position = camera.position.clone();
         this.oPosition = camera.position.clone();
 
+        this.OccupiedBlockPos = [];
+
         this.margin = 0.1;
         this.marginPushStr = 0.001;
         this.dimensions = {
@@ -35,6 +37,7 @@ export class Player
         this.grounded = false;
         this.inFluid = false;
         this.onFluid = false;
+        this.onBlock = EBlock.Grass;
 
         this.runningSpeed = 0.06;
         this.groundSpeed = 0.04;
@@ -64,10 +67,14 @@ export class Player
         this.inputs = {};
 
         this.pendingDestruction = false;
+        this.breakingCD = 0;
         this.pendingPlacement = false;
 
         window.addEventListener("keydown", (e) =>
         {
+            if (e.code == "ControlLeft") if (document.getElementById("Debug").style.display == "block") document.getElementById("Debug").style.display = "none";
+                else document.getElementById("Debug").style.display = "block";
+
             if (!this.pointerLocked || this.inputs[e.code] === true) return;
             this.inputs[e.code] = true;
         });
@@ -110,6 +117,7 @@ export class Player
             case 0:
             {
                 this.pendingDestruction = false;
+                this.breakingCD = 0;
                 break;
             }
             case 2:
@@ -128,6 +136,11 @@ export class Player
     }
     UpdateCameraPosition(dt)
     {
+        if (this.grounded  && Math.sin(this.cameraBobbingX) < -1+dt*0.5)
+        {
+            Play(this.onBlock.sfx, this.onBlock.volume*0.2);
+        }
+
         let bobbing = Math.sin(this.cameraBobbingX)*this.cameraBobbingStr+this.cameraBobbingStr;
         this.camera.position.set(this.position.x, this.position.y+bobbing, this.position.z);
         if (this.grounded)
@@ -233,12 +246,27 @@ export class Player
             this.velocity.y *= k; 
         }
     }
-    UpdateMovement(dt)
+    UpdateMovement(dt, chunkBase)
     {
         this.oPosition = this.position.clone();
         this.position.add(this.velocity.clone().multiplyScalar(dt*60));
         const ppos = this.position.clone().add(new Vector3(0, this.dimensions.vert[-1],0));
         this.PosP.innerHTML = `Position: {X: ${ppos.x.toFixed(2)}; Y: ${ppos.y.toFixed(2)}; Z: ${ppos.z.toFixed(2)}}`;
+
+        const toChunkRatio = chunkBase.recChunkSize*chunkBase.recBlockSize;
+        function GetBlockPosAt(corner)
+        {
+            const chunkPos = corner.clone().multiplyScalar(toChunkRatio).floor();
+
+            return corner.multiplyScalar(chunkBase.recBlockSize).add(new vec3(-chunkPos.x*chunkBase.ChunkSize, 0, -chunkPos.z*chunkBase.ChunkSize)).floor();
+        }
+
+        this.OccupiedBlockPos = [];
+        for (let x = -1; x <= 1; x+=2) { for (let sY = 0; sY < this.dimensions.sideY.length; sY++) { for (let z = -1; z <= 1; z+=2)
+        {
+            let ocorner = this.position.clone().add(new vec3(this.dimensions.side*x, this.dimensions.sideY[sY], (this.dimensions.side-this.margin)*z)).floor();
+            this.OccupiedBlockPos.push(GetBlockPosAt(ocorner));
+        }}}
     }
 
     collisionMsg(msg)
@@ -313,6 +341,7 @@ export class Player
                     }
                     else
                     {
+                        if (y < 0) this.onBlock = block;
                         this.collisionMsg("y");
 
                         const Corner = this.position.clone().add(new vec3((this.dimensions.side-this.margin)*x, this.dimensions.vert[y],(this.dimensions.side-this.margin)*z));
@@ -447,7 +476,12 @@ export class Player
             }
         }}};
 
-        if (this.velocity.y < 0 && this.velocity.y != forces[-1].y) this.grounded = true;
+        if (this.velocity.y < 0 && this.velocity.y != forces[-1].y)
+        {
+            if (!this.grounded)
+                Play(this.onBlock.sfx, this.onBlock.volume*0.2);
+            this.grounded = true;
+        }
         else this.grounded = false;
         this.inFluid = inFluid;
         this.onFluid = onFluid;
@@ -461,25 +495,18 @@ export class Player
         if ((hitData = chunkBase.raycast(this.position.clone(), new Vector3(0,0,-1).applyQuaternion(this.camera.quaternion).normalize(), 3)) != false)
         {
             chunkBase.OverwriteBlockAt(EBlock.Air, hitData.chunkPos, hitData.blockPos);
-            for (let i = 0; i < this.hotbar.items.length; i++)
-            {
-                if (this.hotbar.items[i] == EItem.Null)
-                {
-                    this.hotbar.items[i] = hitData.block.Item;
-                    return;
-                }
-                else if (this.hotbar.items[i].Name == hitData.block.Item.Name)
-                {
-                    this.hotbar.items[i].Count++;
-                    return;
-                }
-            }
+            this.hotbar.Add(hitData.block.Item);
+            this.breakingCD = 0.3;
+
+            Play(hitData.block.sfx,hitData.block.volume);
         }
     }
     PlaceBlock(chunkBase)
     {
+        if (!this.hotbar.Check()) return;
+
         let hitData = {};
-        if ((hitData = chunkBase.raycast(this.position.clone(), new Vector3(0,0,-1).applyQuaternion(this.camera.quaternion).normalize(), 3)) != false)
+        if ((hitData = chunkBase.raycast(this.position.clone(), new Vector3(0,0,-1).applyQuaternion(this.camera.quaternion).normalize(), 3.5)) != false)
         {
             hitData.blockPos.add(hitData.direction);
             switch (true)
@@ -501,9 +528,22 @@ export class Player
                 hitData.chunkPos.z++;
                 break;
             }
-            chunkBase.OverwriteBlockAt(EBlock.Dirt, hitData.chunkPos, hitData.blockPos);
+            for (const oBlockPos of this.OccupiedBlockPos) if (hitData.blockPos.x == oBlockPos.x && hitData.blockPos.y == oBlockPos.y && hitData.blockPos.z == oBlockPos.z) return;
+
+            const block = chunkBase.GetBlockAt(hitData.chunkPos, hitData.blockPos);
+            if (!block.Collide || block.Fluid)
+            {
+                chunkBase.OverwriteBlockAt(EBlock[this.hotbar.items[this.hotbar.index].Name], hitData.chunkPos, hitData.blockPos);
+                Play(EBlock[this.hotbar.items[this.hotbar.index].Name].sfx,EBlock[this.hotbar.items[this.hotbar.index].Name].volume);
+                this.hotbar.Remove();
+            }
         }
         this.pendingPlacement = false;
+    }
+
+    UpdateCD(dt)
+    {
+        this.breakingCD-=dt;
     }
 
     Update(dt, canvas, chunkBase)
@@ -521,11 +561,13 @@ export class Player
         this.UpdateCameraRotation();
         this.UpdateVelocity(dt);
         this.UpdateCollision(chunkBase);
-        this.UpdateMovement(dt);
+        this.UpdateMovement(dt, chunkBase);
         this.UpdateCameraPosition(dt);
-        if (this.pendingDestruction)
+        if (this.pendingDestruction && this.breakingCD <= 0)
             this.DestroyBlock(chunkBase);
         if (this.pendingPlacement)
             this.PlaceBlock(chunkBase);
+
+        this.UpdateCD(dt);
     }
 }

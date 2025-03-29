@@ -1,5 +1,5 @@
 import { EffectComposer, GTAOPass, OutlinePass, OutputPass, RenderPass, RenderPixelatedPass, ShaderPass, SobelOperatorShader, SSAOPass, UnrealBloomPass } from "three/examples/jsm/Addons.js";
-import { camera, renderer, scene } from "./threeInit";
+import { camera, renderer, scene } from "../threeInit";
 import { Vector2 } from "three";
 
 // PP

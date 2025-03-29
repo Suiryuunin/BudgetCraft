@@ -29,7 +29,9 @@ export const EBlock = {
         Visible: true,
         Collide: true,
         Fluid: false,
-        UVScale: 1
+        UVScale: 1,
+        sfx:"../Assets/SFX/grass.ogg",
+        volume:0.5
     },
     Dirt: {
         Name: "Dirt",
@@ -38,7 +40,9 @@ export const EBlock = {
         Visible: true,
         Collide: true,
         Fluid: false,
-        UVScale: 1
+        UVScale: 1,
+        sfx:"../Assets/SFX/step.mp3",
+        volume:0.5
     },
     Sand: {
         Name: "Sand",
@@ -47,7 +51,20 @@ export const EBlock = {
         Visible: true,
         Collide: true,
         Fluid: false,
-        UVScale: 1
+        UVScale: 1,
+        sfx:"../Assets/SFX/sand.ogg",
+        volume:1
+    },
+    Stone: {
+        Name: "Stone",
+        Item: EItem.Stone,
+        Full: true,
+        Visible: true,
+        Collide: true,
+        Fluid: false,
+        UVScale: 1,
+        sfx:"../Assets/SFX/stone.mp3",
+        volume:0.5
     },
     Water: {
         Name: "Water",
@@ -68,7 +85,8 @@ export const TextureIndex = {
     Grass: 0,
     Dirt: 1,
     Sand: 2,
-    Water: 3
+    Stone: 3,
+    Water: 4
 }
 
 export const Textures = [
@@ -111,6 +129,19 @@ export const Textures = [
             texLoader.load("../Assets/Textures/Material/sand.png")   // Downward
         ]
     ],
+    [ // Stone
+        false, // Transparent?
+        0, // Opacity
+        [1,1,1],
+        [
+            texLoader.load("../Assets/Textures/Material/stone.png"),  // Forward
+            texLoader.load("../Assets/Textures/Material/stone.png"),  // Right
+            texLoader.load("../Assets/Textures/Material/stone.png"),  // Backward
+            texLoader.load("../Assets/Textures/Material/stone.png"),  // Left
+            texLoader.load("../Assets/Textures/Material/stone.png"),  // Upward
+            texLoader.load("../Assets/Textures/Material/stone.png")   // Downward
+        ]
+    ],
     [ // Water
         true, // Transparent?
         0.7, // Opacity
@@ -126,7 +157,7 @@ export const Textures = [
     ]
 ];
 
-const waterNorm = texLoader.load("../Assets/Textures/waternormal.webp")
+const waterNorm = texLoader.load("../Assets/Textures/Material/waternormal.webp")
 
 export const mats = [];
 

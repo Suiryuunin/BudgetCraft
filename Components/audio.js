@@ -1,5 +1,5 @@
 
-function Play(i, volume = 0.5)
+export function Play(i, volume = 0.5)
 {
     const audio = new Audio(i);
     audio.volume = volume;
@@ -9,7 +9,7 @@ function Play(i, volume = 0.5)
 }
 
 
-const music = new Audio("Assets/SFX/Waves.mp3");
+const music = new Audio("../Assets/SFX/Waves.mp3");
 
 music.addEventListener("ended", ()=>{
     music.currentTime = 0;

@@ -50,6 +50,10 @@ const render = () => {
         UICtx.globalAlpha = 0.7;
         UICtx.fillStyle = "white";
         UICtx.fillRect(window.innerWidth*0.1, window.innerHeight*0.1, window.innerWidth*0.8, window.innerHeight*0.8);
+        UICtx.beginPath();
+        UICtx.lineWidth = 16;
+        UICtx.rect(window.innerWidth*0.1, window.innerHeight*0.1, window.innerWidth*0.8, window.innerHeight*0.8);
+        UICtx.stroke();
         for (const item of Menu) if (item != undefined)
             item.render(rr);
     }

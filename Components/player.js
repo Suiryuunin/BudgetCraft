@@ -6,6 +6,7 @@ import { Clamp, V2Mag } from "../Utils/customMath";
 import { Hotbar, Inventory } from "./inventory";
 import { EBlock } from "../Voxel/enums";
 import { EItem } from "./items";
+import { Play } from "./audio";
 
 export class Player
 {

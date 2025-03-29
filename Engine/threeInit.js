@@ -15,6 +15,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 
 // Create a camera
 export const camera = new PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(64.5,36,64.5);
 
 // const control = new OrbitControls(camera, renderer.domElement);
 

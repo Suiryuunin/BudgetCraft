@@ -3,15 +3,17 @@ import { EBlock } from "../Voxel/enums";
 export const EItem =
 {
     Null: {
-        BlockType: false,
+        Name: "Null",
         Placeable: false
     },
     Dirt: {
-        BlockType: EBlock.Dirt,
-        Placeable: true
+        Name: "Dirt",
+        Placeable: true,
+        Count: 0
     },
-    Stone: {
-        BlockType: EBlock.Stone,
-        Placeable: true
+    Sand: {
+        Name: "Sand",
+        Placeable: true,
+        Count: 0
     }
 }

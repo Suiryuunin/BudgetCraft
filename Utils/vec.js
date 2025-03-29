@@ -67,6 +67,11 @@ export class vec3
         return this.x*v.x + this.y*v.y + this.z*v.z;
     }
 
+    mag()
+    {
+        return Math.floor(this.x*this.x+this.y*this.y+this.z*this.z);
+    }
+
     array()
     {
         return [this.x, this.y, this.z];

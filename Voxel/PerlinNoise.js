@@ -107,6 +107,8 @@ export default class PerlinNoise
 }
 
 const noise = new PerlinNoise();
+noise.amplitudeVariationPerOctave = 0.5;
+noise.frequencyVariationPerOctave = 1.5;
 
 export function StandardPerlin2D(x, y) {return noise.StandardPerlin2D(x, y);};
 export function FractalBrownianMotion2D(x, y, numOctaves = 1) {return noise.FractalBrownianMotion2D(x, y, numOctaves);};

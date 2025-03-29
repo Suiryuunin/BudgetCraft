@@ -3,11 +3,13 @@ import { EUnitV3, ThreeAxis, ThreeUnitV3 } from "../Utils/utils";
 import { vec2, vec3 } from "../Utils/vec";
 import ChunkBase from "../Voxel/chunkBase";
 import { Clamp, V2Mag } from "../Utils/customMath";
-import { Inventory } from "./inventory";
+import { Hotbar, Inventory } from "./inventory";
+import { EBlock } from "../Voxel/enums";
+import { EItem } from "./items";
 
 export class Player
 {
-    constructor(camera = new Camera(), position = new Vector3())
+    constructor(camera = new Camera())
     {
         // Debug
         this.PosP = document.getElementById("Position");
@@ -15,11 +17,11 @@ export class Player
         this.ColPlines = 0;
 
         // Inventory
-        this.inventory = new Inventory();
+        this.hotbar = new Hotbar();
 
         // Movement
-        this.position = position;
-        this.oPosition = position;
+        this.position = camera.position.clone();
+        this.oPosition = camera.position.clone();
 
         this.margin = 0.1;
         this.marginPushStr = 0.001;
@@ -61,6 +63,9 @@ export class Player
 
         this.inputs = {};
 
+        this.pendingDestruction = false;
+        this.pendingPlacement = false;
+
         window.addEventListener("keydown", (e) =>
         {
             if (!this.pointerLocked || this.inputs[e.code] === true) return;
@@ -80,6 +85,39 @@ export class Player
             this.camRotation.applyAxisAngle(v.applyAxisAngle(ThreeAxis.Y, Math.PI*0.5), -e.movementY*this.sensitivity.y);
             this.camRotation.applyAxisAngle(ThreeAxis.Y, -e.movementX*this.sensitivity.x);
         });
+
+        // Add/Remove
+        window.addEventListener("mousedown", (e) =>
+        {
+            switch (e.button)
+            {
+            case 0:
+            {
+                this.pendingDestruction = true;
+                break;
+            }
+            case 2:
+            {
+                this.pendingPlacement = true;
+                break;
+            }
+            }
+        });
+        window.addEventListener("mouseup", (e) =>
+        {
+            switch (e.button)
+            {
+            case 0:
+            {
+                this.pendingDestruction = false;
+                break;
+            }
+            case 2:
+            {
+                break;
+            }
+            }
+        });
     }
 
     UpdateCameraRotation()
@@ -98,7 +136,6 @@ export class Player
 
     UpdateVelocity(dt)
     {
-
         let force = new Vector3();
 
         if (this.inputs[this.keyBinds.Forward])
@@ -410,13 +447,6 @@ export class Player
             }
         }}};
 
-        // for (let i = -1; i <= 1; i+=2)
-        // {
-        //     if (Math.abs(forces[i].x) <= 0.01) forces[i].x = 0;
-        //     if (Math.abs(forces[i].y) <= 0.01) forces[i].y = 0;
-        //     if (Math.abs(forces[i].z) <= 0.01) forces[i].z = 0;
-        // }
-
         if (this.velocity.y < 0 && this.velocity.y != forces[-1].y) this.grounded = true;
         else this.grounded = false;
         this.inFluid = inFluid;
@@ -425,11 +455,64 @@ export class Player
         this.velocity = forces[-1].clone().add(forces[1]);
     }
 
+    DestroyBlock(chunkBase)
+    {
+        let hitData = {};
+        if ((hitData = chunkBase.raycast(this.position.clone(), new Vector3(0,0,-1).applyQuaternion(this.camera.quaternion).normalize(), 3)) != false)
+        {
+            chunkBase.OverwriteBlockAt(EBlock.Air, hitData.chunkPos, hitData.blockPos);
+            for (let i = 0; i < this.hotbar.items.length; i++)
+            {
+                if (this.hotbar.items[i] == EItem.Null)
+                {
+                    this.hotbar.items[i] = hitData.block.Item;
+                    return;
+                }
+                else if (this.hotbar.items[i].Name == hitData.block.Item.Name)
+                {
+                    this.hotbar.items[i].Count++;
+                    return;
+                }
+            }
+        }
+    }
+    PlaceBlock(chunkBase)
+    {
+        let hitData = {};
+        if ((hitData = chunkBase.raycast(this.position.clone(), new Vector3(0,0,-1).applyQuaternion(this.camera.quaternion).normalize(), 3)) != false)
+        {
+            hitData.blockPos.add(hitData.direction);
+            switch (true)
+            {
+            case (hitData.blockPos.x < 0):
+                hitData.blockPos.x += chunkBase.ChunkSize;
+                hitData.chunkPos.x--;
+                break;
+            case (hitData.blockPos.x >= chunkBase.ChunkSize):
+                hitData.blockPos.x -= chunkBase.ChunkSize;
+                hitData.chunkPos.x++;
+                break;
+            case (hitData.blockPos.z < 0):
+                hitData.blockPos.z += chunkBase.ChunkSize;
+                hitData.chunkPos.z--;
+                break;
+            case (hitData.blockPos.z >= chunkBase.ChunkSize):
+                hitData.blockPos.z -= chunkBase.ChunkSize;
+                hitData.chunkPos.z++;
+                break;
+            }
+            chunkBase.OverwriteBlockAt(EBlock.Dirt, hitData.chunkPos, hitData.blockPos);
+        }
+        this.pendingPlacement = false;
+    }
+
     Update(dt, canvas, chunkBase)
     {
         if (document.pointerLockElement != canvas)
         {
             this.pointerLocked = false;
+            this.pendingDestruction = false;
+            this.pendingPlacement = false;
             this.UpdateCollision(chunkBase);
             this.UpdateCameraPosition(dt);
             return;
@@ -440,5 +523,9 @@ export class Player
         this.UpdateCollision(chunkBase);
         this.UpdateMovement(dt);
         this.UpdateCameraPosition(dt);
+        if (this.pendingDestruction)
+            this.DestroyBlock(chunkBase);
+        if (this.pendingPlacement)
+            this.PlaceBlock(chunkBase);
     }
 }

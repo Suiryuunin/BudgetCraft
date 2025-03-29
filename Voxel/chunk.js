@@ -3,7 +3,7 @@ import { Clamp } from "../Utils/customMath.js";
 import { vec2, vec3 } from "../Utils/vec.js";
 import { EBlock, EDirection, LightDir, mats, TextureIndex, Textures } from "./enums.js";
 import { EDirArr, EDirV3, EUnitV3 } from "../Utils/utils.js"
-import { FractalBrownianMotion2D } from "./PerlinNoise.js";
+import { FractalBrownianMotion2D, StandardPerlin2D } from "./PerlinNoise.js";
 
 export default class Chunk
 {
@@ -16,6 +16,8 @@ export default class Chunk
         this.pos2 = Position;
 
         this.Index = Index;
+
+        this.WaterLevel = 8;
 
         this.BlockVertexData = [
             new vec3(1, 1, 1),
@@ -97,20 +99,34 @@ export default class Chunk
                 const X = (x*this.BlockSize + this.pos.x)*0.01;
                 const Z = (z*this.BlockSize + this.pos.z)*0.01;
 
-                const Height = Clamp(Math.round((FractalBrownianMotion2D(X, Z, 8)+.5)*0.5 * this.Amplitude), 1, this.ChunkHeight);
+                let noiseValue = (FractalBrownianMotion2D(X, Z, 8))+0.5;
+                let perlin = StandardPerlin2D(X,Z);
+                if (perlin < 0) perlin *= 0.5;
+                perlin = (perlin+0.5)*0.5;
+
+                if (noiseValue < 0)
+                    noiseValue *= perlin * 0.05 * this.Amplitude;
+                else
+                {
+                    noiseValue *= (perlin * this.Amplitude);
+                }
+
+                const Height = Clamp(Math.round(noiseValue), 1, this.ChunkHeight);
 
                 for (let y = 0; y < Height-1; y++)
                 {
                     this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Dirt;
                 }
-                if (Height < 16) this.Blocks[this.GetBlockIndex(x,Height-1,z)] = EBlock.Dirt;
+                if (Height <= this.WaterLevel)
+                    for (let i = 0; i <= 3; i++)
+                    this.Blocks[this.GetBlockIndex(x,Height-i,z)] = EBlock.Sand;
                 else this.Blocks[this.GetBlockIndex(x,Height-1,z)] = EBlock.Grass;
                 
-                for (let y = Height; y < 16; y++)
+                for (let y = Height; y < this.WaterLevel; y++)
                 {
                     this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Water;
                 }
-                for (let y = Math.max(Height, 16); y < this.ChunkHeight; y++)
+                for (let y = Math.max(Height, this.WaterLevel); y < this.ChunkHeight; y++)
                 {
                     this.Blocks[this.GetBlockIndex(x,y,z)] = EBlock.Air;
                 }
@@ -124,7 +140,7 @@ export default class Chunk
 
     GenerateMeshAt(x, y, z)
     {
-        const Block = this.Blocks[this.GetBlockIndex(x, y, z)]
+        const Block = this.Blocks[this.GetBlockIndex(x, y, z)];
         if (Block.Visible)
         {
             const Position = new vec3(x, y, z);
@@ -135,14 +151,14 @@ export default class Chunk
                 if (NeighborBlock == null)
                 {
                     if (Block.Full)
-                        this.CreateFace(Direction, Position, 0);
+                        this.CreateFace(Direction, Position, Block.UVScale, 0);
                 }
-                else if (((this.Blocks[this.GetBlockIndex(x, y, z)].Name != NeighborBlock.Name)) && this.Check(NeighborBlock))
+                else if (((Block.Name != NeighborBlock.Name)) && this.Check(NeighborBlock))
                 {
                     let offset = 0;
                     if (Block.Fluid && Direction == EDirection.Up) offset = -0.0625;
 
-                    this.CreateFace(Direction, Position, offset);
+                    this.CreateFace(Direction, Position, Block.UVScale, offset);
                 }
             }
         }
@@ -193,11 +209,25 @@ export default class Chunk
         this.TriVertexCount += 6;
     }
 
-    CreateFace(Direction, Position, offset = 0)
+    CreateFace(Direction, Position, UVScale = 1, offset = 0)
     {
         this.VertexData.push(...this.GetFaceVertices(Direction, Position, offset));
         this.NormalData.push(...EDirArr[Direction],...EDirArr[Direction],...EDirArr[Direction],...EDirArr[Direction]);
-        this.UVData.push(0,1, 1,1, 1,0, 0,0);
+
+        let pos = 0;
+
+        switch (Direction)
+        {
+        case EDirection.Forward: case EDirection.Back: pos = new vec2(Position.z,Position.y);break;
+        case EDirection.Up: case EDirection.Down: pos = new vec2(Position.z,Position.x);break;
+        case EDirection.Left: case EDirection.Right: pos = new vec2(Position.x,Position.y);break;
+        }
+
+        this.UVData.push(
+            0, UVScale,
+            UVScale, UVScale,
+            UVScale, 0,
+            0, 0);
         this.TriangleData.push(this.VertexCount+3, this.VertexCount+2, this.VertexCount, this.VertexCount+2, this.VertexCount+1, this.VertexCount);
 
         this.addMat(Direction, Position);
